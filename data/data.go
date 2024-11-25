@@ -12,10 +12,10 @@ type MysqlConfig struct {
 }
 
 // NewMysqlConfig 读取并解析 YAML 配置文件
-func NewMysqlConfig(configFilePath string) (MysqlConfig, error) {
+func NewMysqlConfig(configFilePath string) (*MysqlConfig, error) {
 	file, err := os.Open(configFilePath)
 	if err != nil {
-		return MysqlConfig{}, err
+		return &MysqlConfig{}, err
 	}
 
 	defer func(file *os.File) {
@@ -30,8 +30,8 @@ func NewMysqlConfig(configFilePath string) (MysqlConfig, error) {
 	decoder := yaml.NewDecoder(file)
 	err = decoder.Decode(&configs)
 	if err != nil {
-		return MysqlConfig{}, err
+		return &MysqlConfig{}, err
 	}
 
-	return configs, nil
+	return &configs, nil
 }

@@ -13,10 +13,10 @@ import (
 )
 
 // GenerateVerificationCode 生成一个6位的数字验证码
-func GenerateVerificationCode(expiryMinutes int) model.VerificationCode {
+func GenerateVerificationCode(expiryMinutes int) *model.VerificationCode {
 	rand.Seed(time.Now().UnixNano())
 	code := rand.Intn(900000) + 100000 // 生成一个100000到999999之间的随机数
-	return model.VerificationCode{
+	return &model.VerificationCode{
 		Code:      strconv.Itoa(code),
 		ExpiresAt: time.Now().Add(time.Duration(expiryMinutes) * time.Minute), // 设置过期时间
 	}
@@ -32,10 +32,10 @@ type EmailConfig struct {
 }
 
 // NewEmailConfigs NewMysqlConfigs 读取并解析 YAML 配置文件
-func NewEmailConfigs(configFilePath string) (EmailConfig, error) {
+func NewEmailConfigs(configFilePath string) (*EmailConfig, error) {
 	file, err := os.Open(configFilePath)
 	if err != nil {
-		return EmailConfig{}, err
+		return &EmailConfig{}, err
 	}
 
 	defer func(file *os.File) {
@@ -50,14 +50,14 @@ func NewEmailConfigs(configFilePath string) (EmailConfig, error) {
 	decoder := yaml.NewDecoder(file)
 	err = decoder.Decode(&configs)
 	if err != nil {
-		return EmailConfig{}, err
+		return &EmailConfig{}, err
 	}
 
-	return configs, nil
+	return &configs, nil
 }
 
 // SendEmail 发送邮件函数
-func SendEmail(config EmailConfig, to string) error {
+func SendEmail(config *EmailConfig, to string) error {
 	from := config.Email.From
 	password := config.Email.Password // 邮箱授权码
 	smtpServer := config.Email.SMTPServer
@@ -129,6 +129,6 @@ func SendEmail(config EmailConfig, to string) error {
 }
 
 // IsExpired 检查验证码是否过期
-func IsExpired(v model.VerificationCode) bool {
+func IsExpired(v *model.VerificationCode) bool {
 	return time.Now().After(v.ExpiresAt)
 }
