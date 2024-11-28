@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package userapi.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "UserService/api/userapi/v1;v1";
+
+service User {
+  // 用户注册
+  rpc Register (RegisterRequest) returns (UserReply) {
+    option (google.api.http) = {
+      post: "/register"
+      body: "*"
+    };
+  }
+
+  // 用户登录
+  rpc Login (LoginRequest) returns (UserReply) {
+    option (google.api.http) = {
+      post: "/login"
+      body: "*"
+    };
+  }
+
+  // 发送邮箱验证码
+  rpc SendVerificationCode (SendVerificationCodeRequest) returns (SendVerificationCodeReply) {
+    option (google.api.http) = {
+      post: "/send_verification_code"
+      body: "*"
+    };
+  }
+}
+
+message SendVerificationCodeRequest {
+  string email = 1; // 目标邮箱
+}
+
+message SendVerificationCodeReply {
+  string message = 1; // 发送结果消息
+}
+
+message RegisterRequest {
+  message User {
+    string email = 1;
+    string username = 2;
+    string password = 3;
+    bool isTeacher = 4;
+  }
+  User user = 1;
+  string verificationCode = 2; // 邮箱验证码
+}
+
+message LoginRequest {
+  message User {
+    string email = 1;
+    string password = 2;
+  }
+  User user = 1;
+}
+
+message UserReply {
+  message User {
+    string email = 1;
+    string username = 2;
+    bool isTeacher = 3;
+  }
+  User user = 1;
+}

@@ -1,0 +1,123 @@
+# Generated with protoc-gen-openapi
+# https://github.com/google/gnostic/tree/master/cmd/protoc-gen-openapi
+
+openapi: 3.0.3
+info:
+    title: User API
+    version: 0.0.1
+paths:
+    /login:
+        post:
+            tags:
+                - User
+            description: 用户登录
+            operationId: User_Login
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/userapi.v1.LoginRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/userapi.v1.UserReply'
+    /register:
+        post:
+            tags:
+                - User
+            description: 用户注册
+            operationId: User_Register
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/userapi.v1.RegisterRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/userapi.v1.UserReply'
+    /send_verification_code:
+        post:
+            tags:
+                - User
+            description: 发送邮箱验证码
+            operationId: User_SendVerificationCode
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/userapi.v1.SendVerificationCodeRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/userapi.v1.SendVerificationCodeReply'
+components:
+    schemas:
+        userapi.v1.LoginRequest:
+            type: object
+            properties:
+                user:
+                    $ref: '#/components/schemas/userapi.v1.LoginRequest_User'
+        userapi.v1.LoginRequest_User:
+            type: object
+            properties:
+                email:
+                    type: string
+                password:
+                    type: string
+        userapi.v1.RegisterRequest:
+            type: object
+            properties:
+                user:
+                    $ref: '#/components/schemas/userapi.v1.RegisterRequest_User'
+                verificationCode:
+                    type: string
+        userapi.v1.RegisterRequest_User:
+            type: object
+            properties:
+                email:
+                    type: string
+                username:
+                    type: string
+                password:
+                    type: string
+                isTeacher:
+                    type: boolean
+        userapi.v1.SendVerificationCodeReply:
+            type: object
+            properties:
+                message:
+                    type: string
+        userapi.v1.SendVerificationCodeRequest:
+            type: object
+            properties:
+                email:
+                    type: string
+        userapi.v1.UserReply:
+            type: object
+            properties:
+                user:
+                    $ref: '#/components/schemas/userapi.v1.UserReply_User'
+        userapi.v1.UserReply_User:
+            type: object
+            properties:
+                email:
+                    type: string
+                username:
+                    type: string
+                isTeacher:
+                    type: boolean
+tags:
+    - name: User

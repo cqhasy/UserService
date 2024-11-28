@@ -1,8 +1,8 @@
 version: '3'
 services:
-  Userdb:
+  rwdb:
     image: mysql:8
     environment:
-      MYSQL_ROOT_PASSWORD: dangerous
+      MYSQL_ROOT_PASSWORD: ccnu
     ports:
       - 3307:3306
