@@ -72,6 +72,7 @@ all:
 	make api;
 	make config;
 	make generate;
+	make wire;
 
 # show help
 help:

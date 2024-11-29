@@ -45,7 +45,8 @@ message RegisterRequest {
     string email = 1;
     string username = 2;
     string password = 3;
-    bool isTeacher = 4;
+    string confirm_password = 4;
+    bool isTeacher = 5;
   }
   User user = 1;
   string verificationCode = 2; // 邮箱验证码

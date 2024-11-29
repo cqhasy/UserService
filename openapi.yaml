@@ -93,6 +93,8 @@ components:
                     type: string
                 password:
                     type: string
+                confirmPassword:
+                    type: string
                 isTeacher:
                     type: boolean
         userapi.v1.SendVerificationCodeReply:

@@ -8,4 +8,6 @@ var (
 	ErrInvalidPassword   = errors.New("invalid password")
 	ErrTimeOut           = errors.New("verification code timed out")
 	ErrCodeErrors        = errors.New("validation code errors")
+	ErrConfirmPassword   = errors.New("passwords are inconsistent")
+	ErrPassword          = errors.New("wrong password")
 )

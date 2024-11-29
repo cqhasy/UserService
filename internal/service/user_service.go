@@ -32,7 +32,7 @@ func (s *UserService) Login(ctx context.Context, req *v1.LoginRequest) (reply *v
 }
 
 func (s *UserService) Register(ctx context.Context, req *v1.RegisterRequest) (reply *v1.UserReply, err error) {
-	u, err := s.uc.Register(ctx, req.User.Username, req.User.Email, req.User.Password, req.User.IsTeacher, req.VerificationCode)
+	u, err := s.uc.Register(ctx, req.User.Username, req.User.Email, req.User.Password, req.User.ConfirmPassword, req.User.IsTeacher, req.VerificationCode)
 	if err != nil {
 		return nil, err
 	}

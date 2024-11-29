@@ -3,6 +3,7 @@ package data
 import (
 	"UserService/internal/conf"
 	"context"
+	"errors"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/driver/mysql"
@@ -15,10 +16,28 @@ type Data struct {
 }
 
 func NewData(c *conf.Data, r *conf.Redis, logger log.Logger) (*Data, func(), error) {
-	db := NewDB(c)
-	re := NewRedisClient(r)
+	db, err := NewDB(c)
+	if err != nil || db == nil {
+		return nil, nil, err
+	}
+	re, err := NewRedisClient(r)
+	if err != nil || re == nil {
+		sqlDB, _ := db.DB()
+		sqlDB.Close() // 防止资源泄漏
+		return nil, nil, err
+	}
 	cleanup := func() {
-		log.NewHelper(logger).Info("closing the data resources")
+		helper := log.NewHelper(logger)
+		helper.Info("closing the data resources")
+
+		// 关闭数据库连接
+		if sqlDB, err := db.DB(); err == nil {
+			sqlDB.Close()
+		}
+		// 关闭 Redis 连接
+		if re != nil {
+			re.Close()
+		}
 	}
 	return &Data{
 		db: db,
@@ -26,23 +45,26 @@ func NewData(c *conf.Data, r *conf.Redis, logger log.Logger) (*Data, func(), err
 	}, cleanup, nil
 }
 
-func NewDB(c *conf.Data) *gorm.DB { //注意：需要多返回一个err
+func NewDB(c *conf.Data) (*gorm.DB, error) {
 	if c == nil || c.Database == nil || c.Database.Dsn == "" {
-		panic("invalid database configuration")
+		log.Fatal("invalid database configuration")
+		return nil, errors.New("invalid database configuration")
 	}
 	db, err := gorm.Open(mysql.Open(c.Database.Dsn), &gorm.Config{})
 	if err != nil {
-		panic("failed to connect database")
+		log.Fatal("invalid database configuration")
+		return nil, err
 	}
 	if err := db.AutoMigrate(
 		&User{},
 	); err != nil {
-		panic(err)
+		log.Fatalf("failed to migrate models: %v", err)
+		return nil, err
 	}
-	return db
+	return db, nil
 }
 
-func NewRedisClient(c *conf.Redis) *redis.Client {
+func NewRedisClient(c *conf.Redis) (*redis.Client, error) {
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     c.Database.Addr,
 		Password: c.Database.Password,
@@ -51,8 +73,9 @@ func NewRedisClient(c *conf.Redis) *redis.Client {
 
 	// 测试连接
 	if _, err := rdb.Ping(context.Background()).Result(); err != nil {
-		panic("failed to connect to Redis: " + err.Error())
+		log.Fatalf("failed to connect to Redis: %v", err)
+		return nil, err
 	}
 
-	return rdb
+	return rdb, nil
 }

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-kratos/kratos/v2/log"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 	"net/smtp"
 )
@@ -56,8 +57,9 @@ func (uc *UserUsecase) Login(ctx context.Context, email string, password string)
 	}
 
 	// 校验密码是否正确
-	if user.Password != password {
-		return nil, ErrInvalidPassword
+	isValid := checkPassword(user.Password, password)
+	if !isValid {
+		return nil, ErrPassword
 	}
 
 	// 返回登录成功信息
@@ -67,7 +69,17 @@ func (uc *UserUsecase) Login(ctx context.Context, email string, password string)
 	}, nil
 }
 
-func (uc *UserUsecase) Register(ctx context.Context, username string, email string, password string, isteacher bool, code string) (*User, error) {
+func checkPassword(hashedPassword, password string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+	// 如果返回 nil，说明匹配成功
+	return err == nil
+}
+
+func (uc *UserUsecase) Register(ctx context.Context, username string, email string, password string, confirmpassword string, isteacher bool, code string) (*User, error) {
+	// 确认密码和密码不一致
+	if password != confirmpassword {
+		return nil, ErrConfirmPassword
+	}
 	// 校验用户是否已存在
 	existingUser, err := uc.ur.FindByUsername(ctx, username)
 	if err != nil {
@@ -77,22 +89,29 @@ func (uc *UserUsecase) Register(ctx context.Context, username string, email stri
 		return nil, ErrUserAlreadyExists
 	}
 
+	// 验证码是否超时
 	timeout := uc.ur.IsExpired(ctx, email, code)
 	// false 为存在问题
 	if !timeout {
 		return nil, ErrTimeOut
 	}
 
+	// 验证码是否正确
 	codeVerified := uc.ur.IsCodeVerified(ctx, email, code)
 	if !codeVerified {
 		return nil, ErrCodeErrors
+	}
+
+	hpassword, err := hashPassword(password)
+	if err != nil {
+		return nil, err
 	}
 
 	// 创建用户
 	user := &User{
 		Email:     email,
 		Username:  username,
-		Password:  password, // 注意：密码还未实现加密
+		Password:  hpassword,
 		IsTeacher: isteacher,
 	}
 	if err := uc.ur.CreateUser(ctx, user); err != nil {
@@ -100,6 +119,14 @@ func (uc *UserUsecase) Register(ctx context.Context, username string, email stri
 	}
 
 	return user, nil
+}
+
+func hashPassword(password string) (string, error) {
+	b, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost) //[]byte默认utf-8
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
 }
 
 func (uc *UserUsecase) SendEmail(ctx context.Context, email string) error {
