@@ -4,6 +4,7 @@ import (
 	v1 "UserService/api/userapi/v1"
 	"UserService/internal/biz"
 	"context"
+	"fmt"
 	"github.com/go-kratos/kratos/v2/log"
 )
 
@@ -31,14 +32,26 @@ func (s *UserService) Login(ctx context.Context, req *v1.LoginRequest) (reply *v
 }
 
 func (s *UserService) Register(ctx context.Context, req *v1.RegisterRequest) (reply *v1.UserReply, err error) {
-	u, err := s.uc.Register(ctx, req.User.Username, req.User.Email, req.User.Password)
+	u, err := s.uc.Register(ctx, req.User.Username, req.User.Email, req.User.Password, req.User.IsTeacher, req.VerificationCode)
 	if err != nil {
 		return nil, err
 	}
+
 	return &v1.UserReply{
 		User: &v1.UserReply_User{
-			Username: u.Username,
-			Email:    u.Email,
+			Username:  u.Username,
+			Email:     u.Email,
+			IsTeacher: u.IsTeacher,
 		},
 	}, nil
+}
+
+func (s *UserService) SendVerificationCode(ctx context.Context, req *v1.SendVerificationCodeRequest) (reply *v1.SendVerificationCodeReply, err error) {
+	// 发送邮件
+	err = s.uc.SendEmail(ctx, req.Email)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send email: %v", err)
+	}
+
+	return &v1.SendVerificationCodeReply{Message: "Verification code sent successfully"}, nil
 }

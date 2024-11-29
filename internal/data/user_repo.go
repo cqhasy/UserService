@@ -4,8 +4,11 @@ import (
 	"UserService/internal/biz"
 	"context"
 	"errors"
+	"fmt"
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
+	"math/rand"
+	"time"
 )
 
 /*
@@ -100,4 +103,37 @@ func (u userRepo) CreateUser(ctx context.Context, user *biz.User) error {
 		IsTeacher: user.IsTeacher,
 	}
 	return u.data.db.WithContext(ctx).Create(dbUser).Error
+}
+
+func (u userRepo) GenerateVerificationCode(ctx context.Context, email string, expiryMinutes int) string {
+	code := fmt.Sprintf("%06d", rand.Intn(900000)+100000) // 生成6位随机验证码
+	key := email
+	expiry := time.Duration(expiryMinutes) * time.Minute
+
+	// 存储验证码到 Redis，设置过期时间
+	err := u.data.re.Set(ctx, key, code, expiry).Err()
+	if err != nil {
+		panic("failed to store verification code in Redis: " + err.Error())
+	}
+
+	return code
+}
+
+func (u userRepo) IsExpired(ctx context.Context, email string, code string) bool {
+	// 检查验证码是否在 Redis 中存在
+	key := email
+	val, err := u.data.re.Get(ctx, key).Result()
+	if err != nil || val != code {
+		return false
+	}
+	return true
+}
+
+func (u userRepo) IsCodeVerified(ctx context.Context, email string, code string) bool {
+	key := email
+	val, err := u.data.re.Get(ctx, key).Result()
+	if err != nil || val != code {
+		return false
+	}
+	return true
 }
