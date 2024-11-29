@@ -20,8 +20,9 @@ type User struct {
 }
 
 type UserLogin struct {
-	Email    string
-	Username string
+	Email     string
+	Username  string
+	IsTeacher bool
 }
 
 // UserRepo 定义用户相关的数据库操作接口
@@ -30,7 +31,7 @@ type UserRepo interface {
 	FindByEmail(ctx context.Context, email string) (*User, error)
 	FindByUsername(ctx context.Context, username string) (*User, error)
 	FindById(ctx context.Context, id int) (*User, error)
-	GenerateVerificationCode(ctx context.Context, email string, expiryMinutes int) string
+	GenerateVerificationCode(ctx context.Context, email string, expiryMinutes int) (string, error)
 	IsExpired(ctx context.Context, email string, code string) bool
 	IsCodeVerified(ctx context.Context, email string, code string) bool
 }
@@ -64,8 +65,9 @@ func (uc *UserUsecase) Login(ctx context.Context, email string, password string)
 
 	// 返回登录成功信息
 	return &UserLogin{
-		Email:    user.Email,
-		Username: user.Username,
+		Email:     user.Email,
+		Username:  user.Username,
+		IsTeacher: user.IsTeacher,
 	}, nil
 }
 
@@ -89,17 +91,17 @@ func (uc *UserUsecase) Register(ctx context.Context, username string, email stri
 		return nil, ErrUserAlreadyExists
 	}
 
+	// 验证码是否正确
+	codeVerified := uc.ur.IsCodeVerified(ctx, email, code)
+	if !codeVerified {
+		return nil, ErrCodeErrors
+	}
+
 	// 验证码是否超时
 	timeout := uc.ur.IsExpired(ctx, email, code)
 	// false 为存在问题
 	if !timeout {
 		return nil, ErrTimeOut
-	}
-
-	// 验证码是否正确
-	codeVerified := uc.ur.IsCodeVerified(ctx, email, code)
-	if !codeVerified {
-		return nil, ErrCodeErrors
 	}
 
 	hpassword, err := hashPassword(password)
@@ -139,18 +141,21 @@ func (uc *UserUsecase) SendEmail(ctx context.Context, email string) error {
 		return ErrUserAlreadyExists
 	}
 
-	code := uc.ur.GenerateVerificationCode(ctx, email, 15)
-
-	err = sendEmail(email, code)
-
+	code, err := uc.ur.GenerateVerificationCode(ctx, email, 15)
 	if err != nil {
 		return err
 	}
+
+	err = sendEmailByQQEmail(email, code)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 // sendEmail 发送邮件函数
-func sendEmail(to string, code string) error {
+func sendEmailByQQEmail(to string, code string) error {
 	from := "2493325754@qq.com"
 	password := "kfpjhmkeiykmebec" // 邮箱授权码
 	smtpServer := "smtp.qq.com:465"

@@ -105,7 +105,7 @@ func (u userRepo) CreateUser(ctx context.Context, user *biz.User) error {
 	return u.data.db.WithContext(ctx).Create(dbUser).Error
 }
 
-func (u userRepo) GenerateVerificationCode(ctx context.Context, email string, expiryMinutes int) string {
+func (u userRepo) GenerateVerificationCode(ctx context.Context, email string, expiryMinutes int) (string, error) {
 	code := fmt.Sprintf("%06d", rand.Intn(900000)+100000) // 生成6位随机验证码
 	key := email
 	expiry := time.Duration(expiryMinutes) * time.Minute
@@ -113,10 +113,10 @@ func (u userRepo) GenerateVerificationCode(ctx context.Context, email string, ex
 	// 存储验证码到 Redis，设置过期时间
 	err := u.data.re.Set(ctx, key, code, expiry).Err()
 	if err != nil {
-		panic("failed to store verification code in Redis: " + err.Error())
+		return "", fmt.Errorf("failed to store verification code in Redis: %v", err)
 	}
 
-	return code
+	return code, nil
 }
 
 func (u userRepo) IsExpired(ctx context.Context, email string, code string) bool {
