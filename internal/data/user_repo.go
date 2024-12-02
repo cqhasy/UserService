@@ -137,3 +137,15 @@ func (u userRepo) IsCodeVerified(ctx context.Context, email string, code string)
 	}
 	return true
 }
+
+func (u userRepo) ClearVerificationCode(ctx context.Context, email string) error {
+	key := email
+
+	// 删除 Redis 中的验证码键
+	err := u.data.re.Del(ctx, key).Err()
+	if err != nil {
+		return fmt.Errorf("failed to delete used verification code in Redis: %v", err)
+	}
+
+	return nil
+}

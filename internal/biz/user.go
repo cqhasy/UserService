@@ -34,6 +34,7 @@ type UserRepo interface {
 	GenerateVerificationCode(ctx context.Context, email string, expiryMinutes int) (string, error)
 	IsExpired(ctx context.Context, email string, code string) bool
 	IsCodeVerified(ctx context.Context, email string, code string) bool
+	ClearVerificationCode(ctx context.Context, email string) error
 }
 
 type UserUsecase struct {
@@ -119,6 +120,8 @@ func (uc *UserUsecase) Register(ctx context.Context, username string, email stri
 	if err := uc.ur.CreateUser(ctx, user); err != nil {
 		return nil, err
 	}
+
+	_ = uc.ur.ClearVerificationCode(ctx, email)
 
 	return user, nil
 }
