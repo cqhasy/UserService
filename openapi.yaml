@@ -112,6 +112,8 @@ components:
             properties:
                 user:
                     $ref: '#/components/schemas/userapi.v1.UserReply_User'
+                token:
+                    type: string
         userapi.v1.UserReply_User:
             type: object
             properties:

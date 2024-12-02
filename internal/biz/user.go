@@ -1,6 +1,7 @@
 package biz
 
 import (
+	"UserService/internal/middleware/jwt"
 	"context"
 	"crypto/tls"
 	"errors"
@@ -23,6 +24,7 @@ type UserLogin struct {
 	Email     string
 	Username  string
 	IsTeacher bool
+	Token     string
 }
 
 // UserRepo 定义用户相关的数据库操作接口
@@ -64,11 +66,17 @@ func (uc *UserUsecase) Login(ctx context.Context, email string, password string)
 		return nil, ErrPassword
 	}
 
+	token, err := jwt.GenToken(email)
+	if err != nil {
+		return nil, err
+	}
+
 	// 返回登录成功信息
 	return &UserLogin{
 		Email:     user.Email,
 		Username:  user.Username,
 		IsTeacher: user.IsTeacher,
+		Token:     token,
 	}, nil
 }
 
@@ -78,18 +86,26 @@ func checkPassword(hashedPassword, password string) bool {
 	return err == nil
 }
 
-func (uc *UserUsecase) Register(ctx context.Context, username string, email string, password string, confirmpassword string, isteacher bool, code string) (*User, error) {
+func (uc *UserUsecase) Register(ctx context.Context, username string, email string, password string, confirmpassword string, isteacher bool, code string) (*UserLogin, error) {
 	// 确认密码和密码不一致
 	if password != confirmpassword {
 		return nil, ErrConfirmPassword
 	}
-	// 校验用户是否已存在
-	existingUser, err := uc.ur.FindByUsername(ctx, username)
+	// 校验邮箱是否已存在
+	existingUserEmail, err := uc.ur.FindByEmail(ctx, email)
 	if err != nil {
 		return nil, err
 	}
-	if existingUser != nil {
-		return nil, ErrUserAlreadyExists
+	if existingUserEmail != nil {
+		return nil, ErrEmailAlreadyExists
+	}
+	// 校验用户是否已存在
+	existingUserName, err := uc.ur.FindByUsername(ctx, username)
+	if err != nil {
+		return nil, err
+	}
+	if existingUserName != nil {
+		return nil, ErrUserNameAlreadyExists
 	}
 
 	// 验证码是否正确
@@ -123,7 +139,17 @@ func (uc *UserUsecase) Register(ctx context.Context, username string, email stri
 
 	_ = uc.ur.ClearVerificationCode(ctx, email)
 
-	return user, nil
+	token, err := jwt.GenToken(email)
+	if err != nil {
+		return nil, err
+	}
+
+	return &UserLogin{
+		Email:     user.Email,
+		Username:  user.Username,
+		IsTeacher: user.IsTeacher,
+		Token:     token,
+	}, nil
 }
 
 func hashPassword(password string) (string, error) {
@@ -135,13 +161,13 @@ func hashPassword(password string) (string, error) {
 }
 
 func (uc *UserUsecase) SendEmail(ctx context.Context, email string) error {
-	// 校验用户是否已存在
+	// 校验邮箱是否已存在
 	existingUser, err := uc.ur.FindByEmail(ctx, email)
 	if err != nil {
 		return err
 	}
 	if existingUser != nil {
-		return ErrUserAlreadyExists
+		return ErrEmailAlreadyExists
 	}
 
 	code, err := uc.ur.GenerateVerificationCode(ctx, email, 15)

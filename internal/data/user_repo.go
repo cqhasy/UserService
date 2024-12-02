@@ -48,7 +48,7 @@ func (u userRepo) FindByEmail(ctx context.Context, email string) (*biz.User, err
 	dbUser := &User{}
 	if err := u.data.db.WithContext(ctx).Where("email = ?", email).First(dbUser).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
+			return nil, biz.ErrUserNotFound
 		}
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func (u userRepo) FindByUsername(ctx context.Context, username string) (*biz.Use
 	dbUser := &User{}
 	if err := u.data.db.WithContext(ctx).Where("username = ?", username).First(dbUser).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
+			return nil, biz.ErrUserNotFound
 		}
 		return nil, err
 	}

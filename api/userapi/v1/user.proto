@@ -67,4 +67,5 @@ message UserReply {
     bool isTeacher = 3;
   }
   User user = 1;
+  string token = 2; // 用户登录凭证
 }

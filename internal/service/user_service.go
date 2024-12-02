@@ -26,8 +26,11 @@ func (s *UserService) Login(ctx context.Context, req *v1.LoginRequest) (reply *v
 	}
 	return &v1.UserReply{
 		User: &v1.UserReply_User{
-			Username: rv.Username,
+			Username:  rv.Username,
+			Email:     rv.Email,
+			IsTeacher: rv.IsTeacher,
 		},
+		Token: rv.Token,
 	}, nil
 }
 
@@ -43,6 +46,7 @@ func (s *UserService) Register(ctx context.Context, req *v1.RegisterRequest) (re
 			Email:     u.Email,
 			IsTeacher: u.IsTeacher,
 		},
+		Token: u.Token,
 	}, nil
 }
 
