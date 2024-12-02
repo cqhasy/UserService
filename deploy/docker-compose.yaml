@@ -6,6 +6,8 @@ services:
       MYSQL_ROOT_PASSWORD: ccnu
     ports:
       - 3307:3306
+    volumes:
+      - mysql-data:/var/lib/mysql  # 持久化 MySQL 数据
   redis:
     image: redis:6.2
     container_name: redis
@@ -16,3 +18,5 @@ services:
       - ./redis.conf:/usr/local/etc/redis/redis.conf
       - ./logs:/logs
     command: redis-server /usr/local/etc/redis/redis.conf
+volumes:
+  mysql-data:  # 定义 MySQL 数据的持久化 volume
