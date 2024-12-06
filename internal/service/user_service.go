@@ -59,3 +59,12 @@ func (s *UserService) SendVerificationCode(ctx context.Context, req *v1.SendVeri
 
 	return &v1.SendVerificationCodeReply{Message: "Verification code sent successfully"}, nil
 }
+
+func (s *UserService) ChangePassword(ctx context.Context, req *v1.ChangePasswordRequest) (reply *v1.ChangePasswordReply, err error) {
+	err = s.uc.ChangePassword(ctx, req.User.Email, req.User.Password, req.User.ConfirmPassword, req.VerificationCode)
+	if err != nil {
+		return nil, fmt.Errorf("failed to change password: %v", err)
+	}
+
+	return &v1.ChangePasswordReply{Message: "Password changed successfully"}, nil
+}

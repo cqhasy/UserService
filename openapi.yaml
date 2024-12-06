@@ -6,6 +6,24 @@ info:
     title: User API
     version: 0.0.1
 paths:
+    /change_password:
+        post:
+            tags:
+                - User
+            operationId: User_ChangePassword
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/userapi.v1.ChangePasswordRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/userapi.v1.ChangePasswordReply'
     /login:
         post:
             tags:
@@ -65,6 +83,27 @@ paths:
                                 $ref: '#/components/schemas/userapi.v1.SendVerificationCodeReply'
 components:
     schemas:
+        userapi.v1.ChangePasswordReply:
+            type: object
+            properties:
+                message:
+                    type: string
+        userapi.v1.ChangePasswordRequest:
+            type: object
+            properties:
+                user:
+                    $ref: '#/components/schemas/userapi.v1.ChangePasswordRequest_User'
+                verificationCode:
+                    type: string
+        userapi.v1.ChangePasswordRequest_User:
+            type: object
+            properties:
+                email:
+                    type: string
+                password:
+                    type: string
+                confirmPassword:
+                    type: string
         userapi.v1.LoginRequest:
             type: object
             properties:

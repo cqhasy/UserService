@@ -37,6 +37,7 @@ type UserRepo interface {
 	IsExpired(ctx context.Context, email string, code string) bool
 	IsCodeVerified(ctx context.Context, email string, code string) bool
 	ClearVerificationCode(ctx context.Context, email string) error
+	UpdatePassword(ctx context.Context, email string, password string) error
 }
 
 type UserUsecase struct {
@@ -161,15 +162,6 @@ func hashPassword(password string) (string, error) {
 }
 
 func (uc *UserUsecase) SendEmail(ctx context.Context, email string) error {
-	// 校验邮箱是否已存在
-	existingUser, err := uc.ur.FindByEmail(ctx, email)
-	if err != nil {
-		return err
-	}
-	if existingUser != nil {
-		return ErrEmailAlreadyExists
-	}
-
 	code, err := uc.ur.GenerateVerificationCode(ctx, email, 15)
 	if err != nil {
 		return err
@@ -250,6 +242,48 @@ func sendEmailByQQEmail(to string, code string) error {
 	if err != nil {
 		return fmt.Errorf("消息发送失败: %v", err)
 	}
+
+	return nil
+}
+
+func (uc *UserUsecase) ChangePassword(ctx context.Context, email string, password string, confirmpassword string, code string) error {
+	// 确认密码和密码不一致
+	if password != confirmpassword {
+		return ErrConfirmPassword
+	}
+	// 校验邮箱是否已存在
+	existingUser, err := uc.ur.FindByEmail(ctx, email)
+	if err != nil {
+		return err
+	}
+	if existingUser == nil {
+		return ErrUserNotFound
+	}
+
+	// 验证码是否正确
+	codeVerified := uc.ur.IsCodeVerified(ctx, email, code)
+	if !codeVerified {
+		return ErrCodeErrors
+	}
+
+	// 验证码是否超时
+	timeout := uc.ur.IsExpired(ctx, email, code)
+	if !timeout {
+		return ErrTimeOut
+	}
+
+	hpassword, err := hashPassword(password)
+	if err != nil {
+		return err
+	}
+
+	// 更新密码
+	err = uc.ur.UpdatePassword(ctx, email, hpassword)
+	if err != nil {
+		return err
+	}
+
+	_ = uc.ur.ClearVerificationCode(ctx, email)
 
 	return nil
 }

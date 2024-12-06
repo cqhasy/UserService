@@ -22,6 +22,7 @@ const (
 	User_Register_FullMethodName             = "/userapi.v1.User/Register"
 	User_Login_FullMethodName                = "/userapi.v1.User/Login"
 	User_SendVerificationCode_FullMethodName = "/userapi.v1.User/SendVerificationCode"
+	User_ChangePassword_FullMethodName       = "/userapi.v1.User/ChangePassword"
 )
 
 // UserClient is the client API for User service.
@@ -34,6 +35,7 @@ type UserClient interface {
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*UserReply, error)
 	// 发送邮箱验证码
 	SendVerificationCode(ctx context.Context, in *SendVerificationCodeRequest, opts ...grpc.CallOption) (*SendVerificationCodeReply, error)
+	ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*ChangePasswordReply, error)
 }
 
 type userClient struct {
@@ -71,6 +73,15 @@ func (c *userClient) SendVerificationCode(ctx context.Context, in *SendVerificat
 	return out, nil
 }
 
+func (c *userClient) ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*ChangePasswordReply, error) {
+	out := new(ChangePasswordReply)
+	err := c.cc.Invoke(ctx, User_ChangePassword_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServer is the server API for User service.
 // All implementations must embed UnimplementedUserServer
 // for forward compatibility
@@ -81,6 +92,7 @@ type UserServer interface {
 	Login(context.Context, *LoginRequest) (*UserReply, error)
 	// 发送邮箱验证码
 	SendVerificationCode(context.Context, *SendVerificationCodeRequest) (*SendVerificationCodeReply, error)
+	ChangePassword(context.Context, *ChangePasswordRequest) (*ChangePasswordReply, error)
 	mustEmbedUnimplementedUserServer()
 }
 
@@ -96,6 +108,9 @@ func (UnimplementedUserServer) Login(context.Context, *LoginRequest) (*UserReply
 }
 func (UnimplementedUserServer) SendVerificationCode(context.Context, *SendVerificationCodeRequest) (*SendVerificationCodeReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendVerificationCode not implemented")
+}
+func (UnimplementedUserServer) ChangePassword(context.Context, *ChangePasswordRequest) (*ChangePasswordReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChangePassword not implemented")
 }
 func (UnimplementedUserServer) mustEmbedUnimplementedUserServer() {}
 
@@ -164,6 +179,24 @@ func _User_SendVerificationCode_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _User_ChangePassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ChangePasswordRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).ChangePassword(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_ChangePassword_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).ChangePassword(ctx, req.(*ChangePasswordRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // User_ServiceDesc is the grpc.ServiceDesc for User service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -182,6 +215,10 @@ var User_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SendVerificationCode",
 			Handler:    _User_SendVerificationCode_Handler,
+		},
+		{
+			MethodName: "ChangePassword",
+			Handler:    _User_ChangePassword_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
