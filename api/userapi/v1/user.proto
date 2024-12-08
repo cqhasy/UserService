@@ -37,6 +37,13 @@ service User {
       body: "*"
     };
   }
+
+  rpc DeleteUser (DeleteUserRequest) returns (DeleteUserReply) {
+    option (google.api.http) = {
+      post: "/delete_user"
+      body: "*"
+    };
+  }
 }
 
 message SendVerificationCodeRequest {
@@ -89,4 +96,12 @@ message ChangePasswordRequest {
 
 message ChangePasswordReply {
   string message = 1; // 修改密码结果消息
+}
+
+message DeleteUserRequest {
+  string email = 1; // 目标邮箱
+}
+
+message DeleteUserReply {
+  string message = 1; // 删除用户结果消息
 }

@@ -38,6 +38,7 @@ type UserRepo interface {
 	IsCodeVerified(ctx context.Context, email string, code string) bool
 	ClearVerificationCode(ctx context.Context, email string) error
 	UpdatePassword(ctx context.Context, email string, password string) error
+	DeleteUser(ctx context.Context, email string) error
 }
 
 type UserUsecase struct {
@@ -285,5 +286,13 @@ func (uc *UserUsecase) ChangePassword(ctx context.Context, email string, passwor
 
 	_ = uc.ur.ClearVerificationCode(ctx, email)
 
+	return nil
+}
+
+func (uc *UserUsecase) DeleteUser(ctx context.Context, email string) error {
+	err := uc.ur.DeleteUser(ctx, email)
+	if err != nil {
+		return err
+	}
 	return nil
 }

@@ -23,6 +23,7 @@ const (
 	User_Login_FullMethodName                = "/userapi.v1.User/Login"
 	User_SendVerificationCode_FullMethodName = "/userapi.v1.User/SendVerificationCode"
 	User_ChangePassword_FullMethodName       = "/userapi.v1.User/ChangePassword"
+	User_DeleteUser_FullMethodName           = "/userapi.v1.User/DeleteUser"
 )
 
 // UserClient is the client API for User service.
@@ -36,6 +37,7 @@ type UserClient interface {
 	// 发送邮箱验证码
 	SendVerificationCode(ctx context.Context, in *SendVerificationCodeRequest, opts ...grpc.CallOption) (*SendVerificationCodeReply, error)
 	ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*ChangePasswordReply, error)
+	DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserReply, error)
 }
 
 type userClient struct {
@@ -82,6 +84,15 @@ func (c *userClient) ChangePassword(ctx context.Context, in *ChangePasswordReque
 	return out, nil
 }
 
+func (c *userClient) DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserReply, error) {
+	out := new(DeleteUserReply)
+	err := c.cc.Invoke(ctx, User_DeleteUser_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServer is the server API for User service.
 // All implementations must embed UnimplementedUserServer
 // for forward compatibility
@@ -93,6 +104,7 @@ type UserServer interface {
 	// 发送邮箱验证码
 	SendVerificationCode(context.Context, *SendVerificationCodeRequest) (*SendVerificationCodeReply, error)
 	ChangePassword(context.Context, *ChangePasswordRequest) (*ChangePasswordReply, error)
+	DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserReply, error)
 	mustEmbedUnimplementedUserServer()
 }
 
@@ -111,6 +123,9 @@ func (UnimplementedUserServer) SendVerificationCode(context.Context, *SendVerifi
 }
 func (UnimplementedUserServer) ChangePassword(context.Context, *ChangePasswordRequest) (*ChangePasswordReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ChangePassword not implemented")
+}
+func (UnimplementedUserServer) DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteUser not implemented")
 }
 func (UnimplementedUserServer) mustEmbedUnimplementedUserServer() {}
 
@@ -197,6 +212,24 @@ func _User_ChangePassword_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _User_DeleteUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).DeleteUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_DeleteUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).DeleteUser(ctx, req.(*DeleteUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // User_ServiceDesc is the grpc.ServiceDesc for User service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -219,6 +252,10 @@ var User_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ChangePassword",
 			Handler:    _User_ChangePassword_Handler,
+		},
+		{
+			MethodName: "DeleteUser",
+			Handler:    _User_DeleteUser_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

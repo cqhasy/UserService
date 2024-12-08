@@ -68,3 +68,13 @@ func (s *UserService) ChangePassword(ctx context.Context, req *v1.ChangePassword
 
 	return &v1.ChangePasswordReply{Message: "Password changed successfully"}, nil
 }
+
+func (s *UserService) DeleteUser(ctx context.Context, req *v1.DeleteUserRequest) (reply *v1.DeleteUserReply, err error) {
+	err = s.uc.DeleteUser(ctx, req.Email)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.DeleteUserReply{
+		Message: "User deleted successfully",
+	}, nil
+}

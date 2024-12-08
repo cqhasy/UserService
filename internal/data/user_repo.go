@@ -161,3 +161,14 @@ func (u userRepo) UpdatePassword(ctx context.Context, email string, password str
 	dbUser.Password = password
 	return u.data.db.WithContext(ctx).Save(dbUser).Error
 }
+
+func (u userRepo) DeleteUser(ctx context.Context, email string) error {
+	dbUser := &User{}
+	if err := u.data.db.WithContext(ctx).Where("email = ?", email).First(dbUser).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return biz.ErrUserNotFound
+		}
+		return err
+	}
+	return u.data.db.WithContext(ctx).Delete(dbUser).Error
+}

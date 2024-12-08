@@ -24,6 +24,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/userapi.v1.ChangePasswordReply'
+    /delete_user:
+        post:
+            tags:
+                - User
+            operationId: User_DeleteUser
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/userapi.v1.DeleteUserRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/userapi.v1.DeleteUserReply'
     /login:
         post:
             tags:
@@ -103,6 +121,16 @@ components:
                 password:
                     type: string
                 confirmPassword:
+                    type: string
+        userapi.v1.DeleteUserReply:
+            type: object
+            properties:
+                message:
+                    type: string
+        userapi.v1.DeleteUserRequest:
+            type: object
+            properties:
+                email:
                     type: string
         userapi.v1.LoginRequest:
             type: object
