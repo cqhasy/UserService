@@ -96,7 +96,11 @@ func (uc *UserUsecase) Register(ctx context.Context, username string, email stri
 	// 校验邮箱是否已存在
 	existingUserEmail, err := uc.ur.FindByEmail(ctx, email)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, ErrUserNotFound) {
+			// 如果查询不到用户，继续执行
+		} else {
+			return nil, err
+		}
 	}
 	if existingUserEmail != nil {
 		return nil, ErrEmailAlreadyExists
@@ -104,7 +108,11 @@ func (uc *UserUsecase) Register(ctx context.Context, username string, email stri
 	// 校验用户是否已存在
 	existingUserName, err := uc.ur.FindByUsername(ctx, username)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, ErrUserNotFound) {
+			// 如果查询不到用户，继续执行
+		} else {
+			return nil, err
+		}
 	}
 	if existingUserName != nil {
 		return nil, ErrUserNameAlreadyExists

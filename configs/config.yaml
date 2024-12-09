@@ -7,9 +7,9 @@ server:
     timeout: 1s
 data:
   database:
-    dsn: "root:ccnu@tcp(127.0.0.1:3307)/users?charset=utf8mb4&parseTime=True&loc=Local"
+    dsn: "root:ccnu@tcp(host.docker.internal:3307)/users?charset=utf8mb4&parseTime=True&loc=Local"
 redis:
   database:
-    addr: "127.0.0.1:6379"
+    addr: "host.docker.internal:6379"
     password: "ccnu"
     db: 0

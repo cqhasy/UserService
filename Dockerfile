@@ -1,4 +1,4 @@
-FROM golang:1.19 AS builder
+FROM golang:1.23 AS builder
 
 COPY . /src
 WORKDIR /src
@@ -21,4 +21,6 @@ EXPOSE 8000
 EXPOSE 9000
 VOLUME /data/conf
 
-CMD ["./server", "-conf", "/data/conf"]
+CMD ["./UserService", "-conf", "/data/conf"]
+
+# docker run -d -p 8000:8000 -p 9000:9000 -v /c/Users/24933/Documents/Code/Go/src/UserService/configs:/data/conf  --name userservice userservice
