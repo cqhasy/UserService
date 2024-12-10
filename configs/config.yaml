@@ -7,9 +7,11 @@ server:
     timeout: 1s
 data:
   database:
-    dsn: "root:ccnu@tcp(host.docker.internal:3307)/users?charset=utf8mb4&parseTime=True&loc=Local"
+    # docker-compose.yaml 中3307:3306映射，这里使用3306，因为时docker，但是本地用127.0.0.1连接时用3307
+    # 本地连接时，使用127.0.0.1进行测试，docker-compose部署时要使用mysql，也就是compose里指定的名称
+    dsn: "root:ccnu@tcp(mysql:3306)/users?charset=utf8mb4&parseTime=True&loc=Local"
 redis:
   database:
-    addr: "host.docker.internal:6379"
+    addr: "redis:6379"
     password: "ccnu"
     db: 0
