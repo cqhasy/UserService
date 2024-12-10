@@ -32,3 +32,9 @@ services:
     command: redis-server /usr/local/etc/redis/redis.conf
 volumes:
   mysql-data:  # 定义 MySQL 数据的持久化 volume
+  redis-data:  # 定义 Redis 数据的持久化 volume
+
+
+# docker-compose up -d
+# 初始化 mysql，由于 mysql 没有初始化，所以之后需要重启 user 服务才能正常使用
+# docker compose -p myproject restart user
